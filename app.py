@@ -536,4 +536,3 @@ elif st.session_state.page == "About Us":
         st.rerun()
 
 
-# git remote add origin https://github.com/JiaQian-1109/stroke-prediction.git
