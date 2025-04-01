@@ -1,0 +1,325 @@
+import streamlit as st
+import joblib
+import numpy as np
+
+# Load model
+model = joblib.load("rf_model.pkl")
+
+# Initialize session state
+if "page" not in st.session_state:
+    st.session_state.page = "Home"
+
+# Get the current page from the URL query parameter
+query_params = st.query_params
+if "page" in query_params:
+    st.session_state.page = query_params["page"]
+
+
+# Top Navigation Bar
+st.markdown(
+    """
+    <style>
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f0f2f6;
+            padding: 10px 20px;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .navbar a {
+            color: #333;
+            text-decoration: none;
+            font-size: 16px;
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+        .navbar a:hover {
+            background-color: #ddd;
+        }
+    </style>
+    <div class="navbar">
+        <a href="?page=Home">Home</a>
+        <a href="?page=About Us">About Us</a>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# Page Routing
+if st.session_state.page == "Home":
+    st.title("Stroke Detection")
+    st.write("Your Body is Your Home")
+    st.write("Build Your Health To Make It Stronger")
+    
+    if st.button("Start"):
+        st.session_state.page = "Selection"
+        st.query_params["page"] = "Selection"
+        st.rerun()  # Force a rerun to update the page immediately
+
+elif st.session_state.page == "Selection":
+    st.title("Selection Page")
+    st.write("Choose an option:")
+    
+    if st.button("Stroke Detection"):
+        st.session_state.page = "Stroke Detection"
+        st.query_params["page"] = "Stroke Detection"
+        st.rerun()  # Force a rerun to update the page immediately
+
+    if st.button("View Model Performance"):
+        st.session_state.page = "Model Performance"
+        st.query_params["page"] = "Model Performance"
+        st.rerun()  # Force a rerun to update the page immediately
+
+elif st.session_state.page == "Stroke Detection":
+    st.title("Stroke Detection")
+    st.write("1. Please fill your information")
+
+    # Input fields
+    age = st.number_input("How old is the patient?", min_value=0, max_value=120, value=30)
+    gender = st.selectbox("What is the patient's gender?", ["Male", "Female"])
+    hypertension = st.selectbox("Does the patient have a history of hypertension?", ["No", "Yes"])
+    heart_disease = st.selectbox("Does the patient have a history of heart disease?", ["No", "Yes"])
+    residence_type = st.selectbox("What is the patient's type of residence?", ["Urban", "Rural"])
+    avg_glucose_level = st.number_input("What is the patient's average glucose level?", min_value=0.0, value=100.0)
+    bmi = st.number_input("What is the patient's Body Mass Index (BMI)?", min_value=0.0, value=25.0)
+    smoking_status = st.selectbox("What is the patient's smoking status?", ["Never smoked", "Formerly smoked", "Smokes", "Unknown"])
+    work_type = st.selectbox("What is the patient's occupation type?", ["Private", "Self-employed", "Govt_job", "Children", "Never_worked"])
+    ever_married = st.selectbox("Has the patient ever been married?", ["No", "Yes"])
+
+    # Encode categorical variables
+    gender_map = {"Female": 0, "Male": 1}
+    hypertension = 1 if hypertension == "Yes" else 0
+    heart_disease = 1 if heart_disease == "Yes" else 0
+    ever_married = 1 if ever_married == "Yes" else 0
+    work_type_map = {"Children": 0, "Govt_job": 1, "Never_worked": 2, "Private": 3, "Self-employed": 4}
+    residence_map = {"Rural": 0, "Urban": 1}
+    smoking_map = {"Formerly smoked": 0, "Never smoked": 1, "Smokes": 2, "Unknown": 3}
+
+    gender = gender_map[gender]
+    work_type = work_type_map[work_type]
+    residence_type = residence_map[residence_type]
+    smoking_status = smoking_map[smoking_status]
+
+    # Model Selection
+    st.write("2. Please select the model")
+    model_choice = st.selectbox("Choose a model:", ["SVM + RF", "SVM + ANN"])
+
+    # Load the corresponding model
+    if model_choice == "SVM + RF":
+        model = joblib.load("hybrid_model_rf.pkl")
+    else:  # SVM + ANN
+        model = joblib.load("hybrid_model.pkl")
+
+    # Predict Button
+    if st.button("Predict Stroke Risk"):
+        # Convert input to NumPy array
+        input_data = np.array([[age, gender, hypertension, heart_disease, residence_type, avg_glucose_level, 
+                                bmi, smoking_status, work_type, ever_married]])
+        
+        # Make prediction
+        prediction = model.predict(input_data)
+        
+        # Store the result and input data in session_state for the Result page
+        st.session_state.result_data = {
+            "Age": age,
+            "Gender": gender,
+            "Hypertension": hypertension,
+            "Heart Disease": heart_disease,
+            "Residence Type": residence_type,
+            "Average Glucose Level": avg_glucose_level,
+            "BMI": bmi,
+            "Smoking Status": smoking_status,
+            "Work Type": work_type,
+            "Ever Married": ever_married,
+            "Prediction Result": "High Risk of Stroke" if prediction[0] == 1 else "Low Risk of Stroke"
+        }
+        
+        # Navigate to Result page
+        st.session_state.page = "Result"
+        st.query_params["page"] = "Result"
+        st.rerun()  # Force a rerun to update the page immediately
+
+    # Exit Button
+    if st.button("Exit to Home"):
+        st.session_state.page = "Home"
+        st.query_params["page"] = "Home"
+        st.rerun()  # Force a rerun to update the page immediately
+
+
+elif st.session_state.page == "Result":
+    st.title("Stroke Detection Summary")
+    st.write("Here is a summary of your inputted data and the prediction result:")
+
+    # Check if result_data exists in session_state
+    if "result_data" in st.session_state:
+        result_data = st.session_state.result_data
+
+        # Use HTML/CSS for tidy formatting
+        st.markdown(
+            f"""
+            <style>
+                .summary-container {{
+                    margin-bottom: 10px;
+                }}
+                .question {{
+                    display: inline-block;
+                    width: 400px;
+                }}
+                .answer {{
+                    font-weight: bold;
+                    display: inline-block;
+                }}
+            </style>
+            <div class="summary-container">
+                <div class="question">How old is the patient?</div>
+                <div class="answer"><strong>{result_data['Age']} years</strong></div>
+            </div>
+            <div class="summary-container">
+                <div class="question">What is the patient's gender?</div>
+                <div class="answer"><strong>{'Male' if result_data['Gender'] == 1 else 'Female'}</strong></div>
+            </div>
+            <div class="summary-container">
+                <div class="question">Does the patient have a history of hypertension?</div>
+                <div class="answer"><strong>{'Yes' if result_data['Hypertension'] == 1 else 'No'}</strong></div>
+            </div>
+            <div class="summary-container">
+                <div class="question">Does the patient have a history of heart disease?</div>
+                <div class="answer"><strong>{'Yes' if result_data['Heart Disease'] == 1 else 'No'}</strong></div>
+            </div>
+            <div class="summary-container">
+                <div class="question">What is the patient's type of residence?</div>
+                <div class="answer"><strong>{'Urban' if result_data['Residence Type'] == 1 else 'Rural'}</strong></div>
+            </div>
+            <div class="summary-container">
+                <div class="question">What is the patient's average glucose level?</div>
+                <div class="answer"><strong>{result_data['Average Glucose Level']}</strong></div>
+            </div>
+            <div class="summary-container">
+                <div class="question">What is the patient's Body Mass Index (BMI)?</div>
+                <div class="answer"><strong>{result_data['BMI']}</strong></div>
+            </div>
+            <div class="summary-container">
+                <div class="question">What is the patient's smoking status?</div>
+                <div class="answer"><strong>{result_data['Smoking Status']}</strong></div>
+            </div>
+            <div class="summary-container">
+                <div class="question">What is the patient's occupation type?</div>
+                <div class="answer"><strong>{result_data['Work Type']}</strong></div>
+            </div>
+            <div class="summary-container">
+                <div class="question">Has the patient ever been married?</div>
+                <div class="answer"><strong>{'Yes' if result_data['Ever Married'] == 1 else 'No'}</strong></div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        # Display the prediction result
+        st.subheader("Prediction Result")
+        if result_data['Prediction Result'] == "High Risk of Stroke":
+            st.error(f"⚠️ {result_data['Prediction Result']}! Please consult a doctor.")
+        else:
+            st.success(f"✅ {result_data['Prediction Result']}. Keep maintaining a healthy lifestyle!")
+
+        # Prepare the content for download
+        download_content = (
+            "Stroke Detection Summary\n\n"
+            "Input Summary:\n"
+            f"- How old is the patient?                           {result_data['Age']} years old\n"
+            f"- What is the patient's gender?                     {'Male' if result_data['Gender'] == 1 else 'Female'}\n"
+            f"- Does the patient have a history of hypertension?  {'Yes' if result_data['Hypertension'] == 1 else 'No'}\n"
+            f"- Does the patient have a history of heart disease? {'Yes' if result_data['Heart Disease'] == 1 else 'No'}\n"
+            f"- What is the patient's type of residence?          {'Urban' if result_data['Residence Type'] == 1 else 'Rural'}\n"
+            f"- What is the patient's average glucose level?      {result_data['Average Glucose Level']}\n"
+            f"- What is the patient's Body Mass Index (BMI)?      {result_data['BMI']}\n"
+            f"- What is the patient's smoking status?             {result_data['Smoking Status']}\n"
+            f"- What is the patient's occupation type?            {result_data['Work Type']}\n"
+            f"- Has the patient ever been married?                {'Yes' if result_data['Ever Married'] == 1 else 'No'}\n\n"
+            "Prediction Result:\n"
+            f"{result_data['Prediction Result']}"
+        )
+
+        # Download Button
+        st.download_button(
+            label="Download Summary",
+            data=download_content,
+            file_name="stroke_detection_summary.txt",
+            mime="text/plain"
+        )
+
+        # Back to Stroke Detection or Home Button
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Back to Stroke Detection"):
+                st.session_state.page = "Stroke Detection"
+                st.query_params["page"] = "Stroke Detection"
+                st.rerun()
+                
+        with col2:
+            if st.button("Exit to Home"):
+                st.session_state.page = "Home"
+                st.query_params["page"] = "Home"
+                st.rerun()
+              
+    else:
+        st.error("No data available. Please complete the Stroke Detection form first.")
+        if st.button("Go to Stroke Detection"):
+            st.session_state.page = "Stroke Detection"
+            st.query_params["page"] = "Stroke Detection"
+            st.rerun()
+
+elif st.session_state.page == "Model Performance":
+    st.title("**Model Performance**")
+    # Model Selection
+    st.write("Please select the model")
+    model_choice = st.selectbox("Choose a model:", ["SVM + RF", "SVM + ANN"])
+
+    # Load the corresponding model
+    if model_choice == "SVM + RF":
+        with open("svmrf_model_performance.txt", "r") as f:
+            performance = f.read()
+    else:  # SVM + ANN
+        with open("svmann_model_performance.txt", "r") as f:
+            performance = f.read()
+
+    
+    st.write("View model performance metrics here.")
+    # Split the performance metrics into lines
+    metrics = performance.strip().split("\n")
+
+    # Create two columns for metric names and values
+    col1, col2 = st.columns(2)
+
+    # Display metric names in the first column and values in the second column
+    col1.write("**Metric Name**")
+    col2.write("**Metric Value**")
+    
+    for metric in metrics:
+        if ": " in metric:  # Ensure the line contains a metric name and value
+            name, value = metric.split(": ")
+            col1.write(name)
+            col2.write(value)
+    if st.button("Back to Home"):
+        st.session_state.page = "Home"
+        st.query_params["page"] = "Home"
+        st.rerun()
+
+elif st.session_state.page == "About Us":
+    st.title("About Us")
+    st.write("Welcome to Build Your Health, a dedicated initiative focused on advancing stroke prediction and prevention. Our mission is to empower individuals and healthcare providers with cutting-edge tools and insights to identify and mitigate the risk of stroke.")
+    st.write("We combine advanced technology, medical expertise, and data-driven analytics to create personalized risk assessments.")
+    st.write("By understanding your unique health profile, we aim to guide you toward proactive measures that could save lives.")
+    st.write("Our approach integrates:")
+    st.write("- Predictive algorithms backed by the latest medical research.")
+    st.write("- Comprehensive analysis of individual health metrics.")
+    st.write("- Education and resources to help you make informed lifestyle choices.")
+    st.write("At Build Your Health, we believe that awareness is the first step in prevention. Together, we can take action to build healthier futures.")
+    st.write("")
+    st.write("Contributor:")
+
+    if st.button("Back to Home"):
+        st.session_state.page = "Home"
+        st.query_params["page"] = "Home"
+        st.rerun()

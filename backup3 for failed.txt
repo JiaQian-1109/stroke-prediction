@@ -1,0 +1,110 @@
+# Input fields
+    age = st.number_input("How old is the patient?", min_value=0, max_value=120, value=30)
+    gender = st.selectbox("What is the patient's gender?", ["Male", "Female"])
+    hypertension = st.selectbox("Does the patient have a history of hypertension?", ["No", "Yes"])
+    heart_disease = st.selectbox("Does the patient have a history of heart disease?", ["No", "Yes"])
+    residence_type = st.selectbox("What is the patient's type of residence?", ["Urban", "Rural"])
+    avg_glucose_level = st.number_input("What is the patient's average glucose level?", min_value=0.0, value=100.0)
+    bmi = st.number_input("What is the patient's Body Mass Index (BMI)?", min_value=0.0, value=25.0)
+    smoking_status = st.selectbox("What is the patient's smoking status?", ["Never smoked", "Formerly smoked", "Smokes", "Unknown"])
+    work_type = st.selectbox("What is the patient's occupation type?", ["Private", "Self-employed", "Govt_job", "Children", "Never_worked"])
+    ever_married = st.selectbox("Has the patient ever been married?", ["No", "Yes"])
+
+    # Encode categorical variables
+    gender_map = {"Female": 0, "Male": 1}
+    hypertension = 1 if hypertension == "Yes" else 0
+    heart_disease = 1 if heart_disease == "Yes" else 0
+    ever_married = 1 if ever_married == "Yes" else 0
+    work_type_map = {"Children": 0, "Govt_job": 1, "Never_worked": 2, "Private": 3, "Self-employed": 4}
+    residence_map = {"Rural": 0, "Urban": 1}
+    smoking_map = {"Formerly smoked": 0, "Never smoked": 1, "Smokes": 2, "Unknown": 3}
+
+    gender = gender_map[gender]
+    work_type = work_type_map[work_type]
+    residence_type = residence_map[residence_type]
+    smoking_status = smoking_map[smoking_status]
+
+    # Model Selection
+    st.markdown(
+    """
+    <div style="text-align: center; line-height: 1.8;">
+        <p style="color: white; font-size: 25px; margin-bottom: 5px; text-align: left; font-weight: bold;">2. Please select the model</p>
+        
+    </div>
+
+    
+    """,
+    unsafe_allow_html=True
+    )
+    model_choice = st.selectbox("Choose a model:", ["SVM + ANN Hybrid", "SVM + RF"])
+
+    # Load models with caching
+    @st.cache_resource
+    def load_models():
+        svm_model = joblib.load("svm_model.pkl")
+        ann_model = load_models("ann_model.h5")
+        meta_classifier = joblib.load("meta_classifier.pkl")
+        rf_model = joblib.load("rf_model.pkl") if os.path.exists("rf_model.pkl") else None
+        return svm_model, ann_model, meta_classifier, rf_model
+
+    svm_model, ann_model, meta_classifier, rf_model = load_models()
+
+    # Predict Button
+    if st.button("Predict Stroke Risk"):
+    # Convert input to NumPy array
+        input_data = np.array([[age, gender, hypertension, heart_disease, residence_type, 
+                            avg_glucose_level, bmi, smoking_status, work_type, ever_married]])
+    
+    try:
+        if model_choice == "SVM + ANN Hybrid":
+            # Get predictions from base models
+            svm_prob = svm_model.predict_proba(input_data)[:, 1].reshape(-1, 1)
+            ann_prob = ann_model.predict(input_data).reshape(-1, 1)
+            
+            # Combine predictions
+            combined_features = np.column_stack((svm_prob, ann_prob))
+            
+            # Get final prediction
+            prediction = meta_classifier.predict(combined_features)
+            probability = meta_classifier.predict_proba(combined_features)[0][1]
+        else:  # SVM + RF
+            # First get RF predictions
+            rf_prob = rf_model.predict_proba(input_data)[:, 1]
+            rf_class = rf_model.predict(input_data)
+            
+            # Combine original features with RF outputs
+            augmented_data = np.column_stack([input_data, rf_prob, rf_class])
+            
+            # Make final prediction with SVM
+            prediction = svm_model.predict(augmented_data)
+            probability = svm_model.predict_proba(augmented_data)[0][1]
+        # Store the result and input data in session_state for the Result page
+        st.session_state.result_data = {
+            "Age": age,
+            "Gender": gender,
+            "Hypertension": hypertension,
+            "Heart Disease": heart_disease,
+            "Residence Type": residence_type,
+            "Average Glucose Level": avg_glucose_level,
+            "BMI": bmi,
+            "Smoking Status": smoking_status,
+            "Work Type": work_type,
+            "Ever Married": ever_married,
+            "Prediction Result": "High Risk of Stroke" if prediction[0] == 1 else "Low Risk of Stroke"
+        }
+
+    except ValueError as e:
+        st.error(f"Invalid input data format: {str(e)}")
+    except AttributeError as e:
+        st.error(f"Model prediction error: {str(e)}")
+    except Exception as e:
+        st.error(f"An unexpected error occurred: {str(e)}")
+        
+        # Navigate to Result page
+        st.session_state.page = "Result"
+        st.rerun()
+
+    # Exit Button
+    if st.button("Exit to Home"):
+        st.session_state.page = "Home"
+        st.rerun()
