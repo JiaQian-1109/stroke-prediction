@@ -431,7 +431,22 @@ elif st.session_state.page == "Result":
             st.rerun()
 
 elif st.session_state.page == "Model Performance":
-    st.title("**Model Performance**")
+
+    st.markdown(
+    """
+    <style>
+    .white-title {
+        color: white;
+        font-size: 2.5em;
+        font-weight: bold;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+    )
+    st.markdown(
+        '<div class="white-title">Model Performance</div>'
+        , unsafe_allow_html=True)
     # Model Selection
     st.write("Please select the model")
     model_choice = st.selectbox("Choose a model:", ["SVM + RF", "SVM + ANN"])
