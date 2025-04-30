@@ -430,14 +430,7 @@ elif st.session_state.page == "Result":
             st.session_state.page = "Stroke Detection"
             st.rerun()
 
-    
-    st.markdown("""
-    <div class="warning-text">
-        <br><br><br>
-        <p>The rusult might not 100'%' accurate due to the imbalance dataset.</p>
-                
-    </div>
-    """, unsafe_allow_html=True)
+   
 
 elif st.session_state.page == "Model Performance":
 
