@@ -434,7 +434,7 @@ elif st.session_state.page == "Result":
      
     st.markdown("""
     <div class="warning-text">
-        <br><br><br>
+        <br>
         <p>***The rusult might not be 100% accurate due to the imbalance dataset.***</p>
                 
     </div>
