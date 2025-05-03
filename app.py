@@ -552,11 +552,11 @@ elif st.session_state.page == "About Us":
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    <div class="about-us-text" style="display: flex;">
+    <div class="about-us-text" style="text-align: center;">
         Contributor:
                 <br><br><br>
-                <img src="https://raw.githubusercontent.com/JiaQian-1109/stroke-prediction/main/JiaQian.jpeg" alt="jiaqian" width="200" height="200">
-    <img src="https://raw.githubusercontent.com/JiaQian-1109/stroke-prediction/main/YiXin.jpeg" alt="yixin" width="200" height="200">
+                <img src="https://raw.githubusercontent.com/JiaQian-1109/stroke-prediction/main/JiaQian.jpeg" alt="jiaqian" width="200" height="200" style="margin-right: 30px;">
+                <img src="https://raw.githubusercontent.com/JiaQian-1109/stroke-prediction/main/YiXin.jpeg" alt="yixin" width="200" height="200" style="margin-left: 30px;">
     </div>
     """, unsafe_allow_html=True)
 
