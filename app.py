@@ -555,8 +555,9 @@ elif st.session_state.page == "About Us":
     <div class="about-us-text" >
         Contributor:
                 <br><br><br>
-                <img src="https://raw.githubusercontent.com/JiaQian-1109/stroke-prediction/main/JiaQian.jpeg" alt="jiaqian" width="200" height="200" style="margin-right: 30px; text-align: center;">
+                <img src="https://raw.githubusercontent.com/JiaQian-1109/stroke-prediction/main/JiaQian.jpeg" alt="jiaqian" width="200" height="200" style="margin-left: 40%; margin-right: 30px; text-align: center;">
                 <img src="https://raw.githubusercontent.com/JiaQian-1109/stroke-prediction/main/YiXin.jpeg" alt="yixin" width="200" height="200" style="margin-left: 30px; text-align: center;">
+                <br><br>
     </div>
     """, unsafe_allow_html=True)
 
