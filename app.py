@@ -552,7 +552,7 @@ elif st.session_state.page == "About Us":
     """, unsafe_allow_html=True)
 
     st.markdown("""
-    <div class="about-us-text">
+    <div class="about-us-text" style="display: flex;">
         Contributor:
                 <br><br><br>
                 <img src="https://raw.githubusercontent.com/JiaQian-1109/stroke-prediction/main/JiaQian.jpeg" alt="jiaqian" width="200" height="200">
