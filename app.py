@@ -556,7 +556,7 @@ elif st.session_state.page == "About Us":
         Contributor:
                 <br><br><br>
                 <img src="JiaQian.jpeg" alt="jiaqian" width="300" height="200">
-                <img src="YiXin.jpeg" alt="jiaqian" width="300" height="200">
+                <img src="YiXin.jpeg" alt="yixin" width="300" height="200">
     </div>
     """, unsafe_allow_html=True)
 
