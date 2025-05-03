@@ -558,7 +558,7 @@ elif st.session_state.page == "About Us":
                 <img src="https://raw.githubusercontent.com/JiaQian-1109/stroke-prediction/main/JiaQian.jpeg" alt="jiaqian" width="200" height="200" style="margin-left: 15%; margin-right: 30px; text-align: center;">
                 <img src="https://raw.githubusercontent.com/JiaQian-1109/stroke-prediction/main/YiXin.jpeg" alt="yixin" width="200" height="200" style="margin-left: 30px; text-align: center;">
                 <br><br>
-                Wong Jia Qian&nbsp;&nbsp;&nbsp;&nbsp;Soh Yi Xin
+                Wong Jia Qian&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Soh Yi Xin
     </div>
     """, unsafe_allow_html=True)
 
